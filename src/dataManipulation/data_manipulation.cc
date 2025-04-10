@@ -503,6 +503,47 @@ bool DataManipulation::JuniperUpdate(gnmi::SubscribeResponse &juniper_stream,
     return true;
 }
 
+// 1. Decode & Extract mata-data & Add to JSON-Obj (nokia_tlm_header_ext)
+// 2. From JSON-Obj to JSON-Str
+bool DataManipulation::NokiaExtension(
+    gnmi::SubscribeResponse &nokia_stream,
+    GnmiNokiaTelemetryHeaderExtension &nokia_tlm_header_ext,
+    Json::Value &root)
+{
+    bool parsing_str {false};
+    std::string stream_data_in;
+
+    for (const auto &ext : nokia_stream.extension()) {
+        if (ext.has_registered_ext() &&
+            ext.registered_ext().id() ==
+                gnmi_ext::ExtensionID::EID_NOKIA_TELEMETRY_HEADER) {
+            parsing_str = nokia_tlm_header_ext.ParseFromString(
+                ext.registered_ext().msg());
+
+            if (parsing_str == true) {
+                if (!nokia_tlm_header_ext.system_id().empty()) {
+                    root["system_id"] = nokia_tlm_header_ext.system_id();
+                    //std::cout << nokia_tlm_header_ext->system_id() << "\n";
+                }
+
+                stream_data_in.clear();
+                google::protobuf::util::JsonPrintOptions opt;
+                opt.add_whitespace = false;
+                google::protobuf::util::MessageToJsonString(
+                    nokia_tlm_header_ext,
+                    &stream_data_in,
+                    opt);
+                root["extension"] = stream_data_in;
+                //std::cout << stream_data_in << "\n";
+            } else {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 // 1. Decode & Extract mata-data & Add to JSON-Obj (huawei_tlm)
 // 2. Decode & Extract payload (record = content_s) & Add to JSON-Obj (oc-if)
 // 3. From JSON-Obj to JSON-Str
