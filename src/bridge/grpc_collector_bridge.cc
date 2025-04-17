@@ -230,7 +230,13 @@ extern "C" {
         const char *zmq_uri)
     {
         LoadOptions(cfg_path, zmq_uri);
-
+        spdlog::get("multi-logger")->debug(
+            "ipv4 sockets found in config:\n ipv4_socket_cisco: {},\n ipv4_socket_juniper: {},\n ipv4_socket_nokia: {},\n ipv4_socket_huawei: {}\n",
+            main_cfg_parameters.at("ipv4_socket_cisco"),
+            main_cfg_parameters.at("ipv4_socket_juniper"),
+            main_cfg_parameters.at("ipv4_socket_nokia"),
+            main_cfg_parameters.at("ipv4_socket_huawei")
+        );
         if (main_cfg_parameters.at("ipv4_socket_cisco").empty() == true &&
             main_cfg_parameters.at("ipv4_socket_juniper").empty() == true &&
             main_cfg_parameters.at("ipv4_socket_nokia").empty() == true &&

@@ -348,7 +348,6 @@ void Srv::NokiaFsmCtrl()
 
     DataManipulation data_manipulation;
     DataWrapper data_wrapper;
-    GnmiNokiaTelemetryHeaderExtension nokia_tlm_hdr_ext;
 
     // Kafka producer
     KafkaDelivery kafka_delivery;
@@ -378,8 +377,7 @@ void Srv::NokiaFsmCtrl()
     std::unique_ptr<Srv::NokiaStream> nokia_sstream(
         new Srv::NokiaStream(&nokia_service_, nokia_cq_.get()));
     nokia_sstream->Start(label_map, data_manipulation, data_wrapper,
-        kafka_delivery, kafka_producer, zmq_pusher, zmq_sock, zmq_uri,
-        nokia_tlm_hdr_ext);
+        kafka_delivery, kafka_producer, zmq_pusher, zmq_sock, zmq_uri);
     //int nokia_counter {0};
     void *nokia_tag {nullptr};
     bool nokia_ok {false};
@@ -395,7 +393,7 @@ void Srv::NokiaFsmCtrl()
         }
         static_cast<NokiaStream *>(nokia_tag)->Srv::NokiaStream::Start(
             label_map, data_manipulation, data_wrapper, kafka_delivery,
-            kafka_producer, zmq_pusher, zmq_sock, zmq_uri, nokia_tlm_hdr_ext);
+            kafka_producer, zmq_pusher, zmq_sock, zmq_uri);
         //nokia_counter++;
     }
 
@@ -506,7 +504,7 @@ Srv::JuniperStream::JuniperStream(
 }
 
 Srv::NokiaStream::NokiaStream(
-    Subscriber::AsyncService *nokia_service,
+    Nokia::SROS::DialoutTelemetry::AsyncService *nokia_service,
     grpc::ServerCompletionQueue *nokia_cq) :
         nokia_service_ {nokia_service},
         nokia_cq_ {nokia_cq},
@@ -1100,8 +1098,7 @@ void Srv::NokiaStream::Start(
     kafka::clients::KafkaProducer &kafka_producer,
     ZmqPush &zmq_pusher,
     zmq::socket_t &zmq_sock,
-    const std::string &zmq_uri,
-    GnmiNokiaTelemetryHeaderExtension &nokia_tlm_hdr_ext)
+    const std::string &zmq_uri)
 {
     const std::string ddm = main_cfg_parameters.at("data_delivery_method");
 
@@ -1110,7 +1107,7 @@ void Srv::NokiaStream::Start(
 
     // Initial stream_status set to START @constructor
     if (nokia_stream_status == START) {
-        nokia_service_->RequestDialOutSubscriber(
+        nokia_service_->RequestPublish(
             &nokia_server_ctx,
             &nokia_resp,
             nokia_cq_,
@@ -1121,8 +1118,7 @@ void Srv::NokiaStream::Start(
         spdlog::get("multi-logger")->debug("[NokiaStream::Start()] "
             "new Srv::NokiaStream() {}", nokia_server_ctx.peer());
         nokia_sstream->Start(label_map, data_manipulation, data_wrapper,
-            kafka_delivery, kafka_producer, zmq_pusher, zmq_sock, zmq_uri,
-            nokia_tlm_hdr_ext);
+            kafka_delivery, kafka_producer, zmq_pusher, zmq_sock, zmq_uri);
         nokia_resp.Read(&nokia_stream, this);
         nokia_stream_status = PROCESSING;
         nokia_replies_sent++;
@@ -1163,8 +1159,8 @@ void Srv::NokiaStream::Start(
             // the key-word "this" is used as a unique TAG
             nokia_resp.Read(&nokia_stream, this);
 
-            if (data_manipulation.NokiaExtension(nokia_stream,
-                nokia_tlm_hdr_ext, root) == true) {
+            if (data_manipulation.NokiaUpdate(nokia_stream, json_str_out,
+                    root) == true) {
                     spdlog::get("multi-logger")->
                         info("[NokiaStream::Start()] {} "
                         "NokiaExtension, parsing successful", peer_ip);

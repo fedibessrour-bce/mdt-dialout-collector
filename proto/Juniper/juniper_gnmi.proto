@@ -27,7 +27,7 @@ import "juniper_gnmi_ext.proto";
 //
 // This document references the gNMI Specification which can be found at
 // http://github.com/openconfig/reference/blob/master/rpc/gnmi
-package gnmi;
+package juniper_gnmi;
 
 // Define a protobuf FileOption that defines the gNMI service version.
 extend google.protobuf.FileOptions {
@@ -211,7 +211,7 @@ message SubscribeRequest {
   }
   // Extension messages associated with the SubscribeRequest. See the
   // gNMI extension specification for further definition.
-  repeated gnmi_ext.Extension extension = 5;
+  repeated juniper_gnmi_ext.Extension extension = 5;
 }
 
 // Poll is sent within a SubscribeRequest to trigger the device to
@@ -238,7 +238,7 @@ message SubscribeResponse {
   }
   // Extension messages associated with the SubscribeResponse. See the
   // gNMI extension specification for further definition.
-  repeated gnmi_ext.Extension extension = 5;
+  repeated juniper_gnmi_ext.Extension extension = 5;
 }
 
 // SubscriptionList is used within a Subscribe message to specify the list of
@@ -341,7 +341,7 @@ message SetRequest {
   repeated Update update = 4;     // Updates specifying elements to updated.
   // Extension messages associated with the SetRequest. See the
   // gNMI extension specification for further definition.
-  repeated gnmi_ext.Extension extension = 5;
+  repeated juniper_gnmi_ext.Extension extension = 5;
 }
 
 // SetResponse is the response to a SetRequest, sent from the target to the
@@ -360,7 +360,7 @@ message SetResponse {
   int64 timestamp = 4;                 // Timestamp of transaction (ns since epoch).
   // Extension messages associated with the SetResponse. See the
   // gNMI extension specification for further definition.
-  repeated gnmi_ext.Extension extension = 5;
+  repeated juniper_gnmi_ext.Extension extension = 5;
 }
 
 // UpdateResult is used within the SetResponse message to communicate the
@@ -408,7 +408,7 @@ message GetRequest {
   repeated ModelData use_models = 6;    // The schema models to be used.
   // Extension messages associated with the GetRequest. See the
   // gNMI extension specification for further definition.
-  repeated gnmi_ext.Extension extension = 7;
+  repeated juniper_gnmi_ext.Extension extension = 7;
 }
 
 // GetResponse is used by the target to respond to a GetRequest from a client.
@@ -420,7 +420,7 @@ message GetResponse {
   Error error = 2 [deprecated=true];        // Errors that occurred in the Get.
   // Extension messages associated with the GetResponse. See the
   // gNMI extension specification for further definition.
-  repeated gnmi_ext.Extension extension = 3;
+  repeated juniper_gnmi_ext.Extension extension = 3;
 }
 
 // CapabilityRequest is sent by the client in the Capabilities RPC to request
@@ -429,7 +429,7 @@ message GetResponse {
 message CapabilityRequest {
   // Extension messages associated with the CapabilityRequest. See the
   // gNMI extension specification for further definition.
-  repeated gnmi_ext.Extension extension = 1;
+  repeated juniper_gnmi_ext.Extension extension = 1;
 }
 
 // CapabilityResponse is used by the target to report its capabilities to the
@@ -441,7 +441,7 @@ message CapabilityResponse {
   string gNMI_version = 3;                    // Supported gNMI version.
   // Extension messages associated with the CapabilityResponse. See the
   // gNMI extension specification for further definition.
-  repeated gnmi_ext.Extension extension = 4;
+  repeated juniper_gnmi_ext.Extension extension = 4;
 }
 
 // ModelData is used to describe a set of schema modules. It can be used in a

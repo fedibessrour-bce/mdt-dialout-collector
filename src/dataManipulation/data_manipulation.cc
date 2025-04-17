@@ -214,7 +214,7 @@ Json::Value DataManipulation::CiscoGpbkvField2Json(
 // 1. Decode & Extract mata-data & Add to JSON-Obj (juniper_tlm_header_ext)
 // 2. From JSON-Obj to JSON-Str
 bool DataManipulation::JuniperExtension(
-    gnmi::SubscribeResponse &juniper_stream,
+    juniper_gnmi::SubscribeResponse &juniper_stream,
     GnmiJuniperTelemetryHeaderExtension &juniper_tlm_header_ext,
     Json::Value &root)
 {
@@ -224,7 +224,7 @@ bool DataManipulation::JuniperExtension(
     for (const auto &ext : juniper_stream.extension()) {
         if (ext.has_registered_ext() &&
             ext.registered_ext().id() ==
-                gnmi_ext::ExtensionID::EID_JUNIPER_TELEMETRY_HEADER) {
+                juniper_gnmi_ext::ExtensionID::EID_JUNIPER_TELEMETRY_HEADER) {
             parsing_str = juniper_tlm_header_ext.ParseFromString(
                 ext.registered_ext().msg());
 
@@ -253,7 +253,7 @@ bool DataManipulation::JuniperExtension(
 }
 
 // Generate the JSON-Str from the upadate msg
-bool DataManipulation::JuniperUpdate(gnmi::SubscribeResponse &juniper_stream,
+bool DataManipulation::JuniperUpdate(juniper_gnmi::SubscribeResponse &juniper_stream,
     std::string &json_str_out,
     Json::Value &root)
 {
@@ -503,43 +503,254 @@ bool DataManipulation::JuniperUpdate(gnmi::SubscribeResponse &juniper_stream,
     return true;
 }
 
-// 1. Decode & Extract mata-data & Add to JSON-Obj (nokia_tlm_header_ext)
-// 2. From JSON-Obj to JSON-Str
-bool DataManipulation::NokiaExtension(
-    gnmi::SubscribeResponse &nokia_stream,
-    GnmiNokiaTelemetryHeaderExtension &nokia_tlm_header_ext,
+
+// Generate the JSON-Str from the upadate msg
+bool DataManipulation::NokiaUpdate(nokia_gnmi::SubscribeResponse &nokia_stream,
+    std::string &json_str_out,
     Json::Value &root)
 {
-    bool parsing_str {false};
-    std::string stream_data_in;
+    // From the first update() generate the sensor_path
+    //SubscribeResponse
+    //---> bool sync_response = 3;
+    //---> Notification update = 1;
+    //     ---> (        ) bool  atomic = 6;
+    //     ---> (        ) int64 timestamp = 1
+    //     ---> (        ) Path  prefix = 2;
+    //          ---> (        ) string origin = 2;
+    //          ---> (        ) string target = 4;
+    //          ---> (repeated) PathElem elem = 3;
+    //                          ---> string name = 1;
+    //                          ---> map<string, string> key = 2;
 
-    for (const auto &ext : nokia_stream.extension()) {
-        if (ext.has_registered_ext() &&
-            ext.registered_ext().id() ==
-                gnmi_ext::ExtensionID::EID_NOKIA_TELEMETRY_HEADER) {
-            parsing_str = nokia_tlm_header_ext.ParseFromString(
-                ext.registered_ext().msg());
+    // sensor_path as JSON
+    if (nokia_stream.has_update()) {
+        const auto &nup = nokia_stream.update();
+        std::uint64_t notification_timestamp = nup.timestamp();
 
-            if (parsing_str == true) {
-                if (!nokia_tlm_header_ext.system_id().empty()) {
-                    root["system_id"] = nokia_tlm_header_ext.system_id();
-                    //std::cout << nokia_tlm_header_ext->system_id() << "\n";
+        int path_idx = 0;
+        Json::Value sensor_path(Json::arrayValue);
+
+        while (path_idx < nup.prefix().elem_size()) {
+            Json::Value path_element;
+            path_element["name"] = nup.prefix().elem().at(path_idx).name();
+
+            // handling paths with filters
+            if (nup.prefix().elem().at(path_idx).key_size() > 0) {
+                Json::Value filters;
+                for (const auto &[key, value] :
+                nup.prefix().elem().at(path_idx).key()) {
+                    filters[key] = value;
                 }
-
-                stream_data_in.clear();
-                google::protobuf::util::JsonPrintOptions opt;
-                opt.add_whitespace = false;
-                google::protobuf::util::MessageToJsonString(
-                    nokia_tlm_header_ext,
-                    &stream_data_in,
-                    opt);
-                root["extension"] = stream_data_in;
-                //std::cout << stream_data_in << "\n";
-            } else {
-                return false;
+                path_element["filters"] = filters;
             }
+            sensor_path.append(path_element);
+            path_idx++;
+        }
+
+        root["sensor_path"] = sensor_path;
+        root["notification_timestamp"] = notification_timestamp;
+
+    // sensor_path as string
+    //std::string value;
+    //std::string sensor_path;
+
+    //std::cout << "-------> " << jup.ByteSizeLong() << "\n\n";
+    //if (juniper_stream.has_update()) {
+    //    const auto &jup = juniper_stream.update();
+    //    // The Notification MUST include the timestamp field
+    //    std::uint64_t notification_timestamp = jup.timestamp();
+    //    //std::cout << "DebugString: " << jup.prefix().Utf8DebugString()
+    //    //    << "\n";
+    //    int path_idx = 0;
+    //    sensor_path.clear();
+    //    while (path_idx < jup.prefix().elem_size()) {
+    //        // first partial path with filters
+    //        if (path_idx == 0 &&
+    //            jup.prefix().elem().at(path_idx).key_size() > 0) {
+    //            //std::cout << "/" << jup.prefix().elem().at(path_idx).name();
+    //            sensor_path.append("/");
+    //            sensor_path.append(jup.prefix().elem().at(path_idx).name());
+    //            int filter = 1;
+    //            for (const auto &[key, value] :
+    //                jup.prefix().elem().at(path_idx).key()) {
+    //                // only one filter
+    //                if (jup.prefix().elem().at(path_idx).key_size() == 1) {
+    //                    //std::cout << "[" << key << "=" << value << "]";
+    //                    sensor_path.append("[");
+    //                    sensor_path.append(key);
+    //                    sensor_path.append("=");
+    //                    sensor_path.append(value);
+    //                    sensor_path.append("]");
+    //                    path_idx++;
+    //                    continue;
+    //                }
+    //                // multiple filters
+    //                if (jup.prefix().elem().at(path_idx).key_size() > 1) {
+    //                    // first filter
+    //                    if (filter == 1) {
+    //                        //std::cout << "[" << key << "=" << value
+    //                        //    << " and ";
+    //                        sensor_path.append("[");
+    //                        sensor_path.append(key);
+    //                        sensor_path.append("=");
+    //                        sensor_path.append(value);
+    //                        sensor_path.append(" and ");
+    //                        filter++;
+    //                        continue;
+    //                    }
+    //                    // last filter
+    //                    if (filter ==
+    //                        jup.prefix().elem().at(path_idx).key_size()) {
+    //                        //std::cout << key << "=" << value << "]";
+    //                        sensor_path.append(key);
+    //                        sensor_path.append("=");
+    //                        sensor_path.append(value);
+    //                        sensor_path.append("]");
+    //                        filter++;
+    //                        continue;
+    //                    }
+    //                    // in-between filters
+    //                    if (filter > 0) {
+    //                        //std::cout << key << "=" << value << " and ";
+    //                        sensor_path.append(key);
+    //                        sensor_path.append("=");
+    //                        sensor_path.append(value);
+    //                        sensor_path.append(" and ");
+    //                        filter++;
+    //                        continue;
+    //                    }
+    //                }
+    //            }
+    //            //std::cout << "/";
+    //            sensor_path.append("/");
+    //            path_idx++;
+    //            continue;
+    //        }
+    //        // first partial path without filters
+    //        if (path_idx == 0) {
+    //            //std::cout << "/" << jup.prefix().elem().at(path_idx).name()
+    //            //    << "/";
+    //            sensor_path.append("/");
+    //            sensor_path.append(jup.prefix().elem().at(path_idx).name());
+    //            sensor_path.append("/");
+    //            path_idx++;
+    //            continue;
+    //        }
+    //        // in-between paths with filters
+    //        if (jup.prefix().elem().at(path_idx).key_size() > 0) {
+    //            //std::cout << jup.prefix().elem().at(path_idx).name();
+    //            sensor_path.append(jup.prefix().elem().at(path_idx).name());
+    //            int filter = 1;
+    //            for (const auto &[key, value] :
+    //                jup.prefix().elem().at(path_idx).key()) {
+    //                    // only one filter
+    //                if (jup.prefix().elem().at(path_idx).key_size() == 1) {
+    //                    //std::cout << "[" << key << "=" << value << "]";
+    //                    sensor_path.append("[");
+    //                    sensor_path.append(key);
+    //                    sensor_path.append("=");
+    //                    sensor_path.append(value);
+    //                    sensor_path.append("]");
+    //                    path_idx++;
+    //                    continue;
+    //                }
+    //                // multiple filters
+    //                if (jup.prefix().elem().at(path_idx).key_size() > 1) {
+    //                    // first filter
+    //                    if (filter == 1) {
+    //                        //std::cout << "[" << key << "=" << value
+    //                        //    << " and ";
+    //                        sensor_path.append("[");
+    //                        sensor_path.append(key);
+    //                        sensor_path.append("=");
+    //                        sensor_path.append(value);
+    //                        sensor_path.append(" and ");
+    //                        filter++;
+    //                        continue;
+    //                    }
+    //                    // last filter
+    //                    if (filter ==
+    //                        jup.prefix().elem().at(path_idx).key_size()) {
+    //                        //std::cout << key << "=" << value << "]";
+    //                        sensor_path.append(key);
+    //                        sensor_path.append("=");
+    //                        sensor_path.append(value);
+    //                        sensor_path.append("]");
+    //                        filter++;
+    //                        continue;
+    //                    }
+    //                    // in-between filters
+    //                    if (filter > 0) {
+    //                        //std::cout << key << "=" << value << " and ";
+    //                        sensor_path.append(key);
+    //                        sensor_path.append("=");
+    //                        sensor_path.append(value);
+    //                        sensor_path.append(" and ");
+    //                        filter++;
+    //                        continue;
+    //                    }
+    //                }
+    //            }
+    //            //std::cout << "/";
+    //            sensor_path.append("/");
+    //            path_idx++;
+    //            continue;
+    //        }
+
+    //        // no filtering
+    //        //std::cout << jup.prefix().elem().at(path_idx).name() << "/";
+    //        sensor_path.append(jup.prefix().elem().at(path_idx).name());
+    //        sensor_path.append("/");
+    //        path_idx++;
+    //    }
+
+    //    root["sensor_path"] = sensor_path;
+    //    root["notification_timestamp"] = notification_timestamp;
+    //    std::cout << "sensor_path: " << sensor_path << "\n";
+
+        // From the second update().update() extract all the values
+        // associated with a specific sensor path
+        //SubscribeResponse
+        //---> bool sync_response = 3;
+        //---> Notification update = 1;
+        //     ---> (repeated) Update update = 4;
+        //          ---> TypedValue val = 3;
+        //          ---> Path path = 1;
+        //          ---> (        ) string origin = 2;
+        //          ---> (        ) string target = 4;
+        //          ---> (repeated) PathElem elem = 3;
+        //                          ---> string name = 1;
+        //                          ---> map<string, string> key = 2;
+        //std::cout << "\n";
+        std::string path;
+        Json::Value value;
+        for (const auto &_nup : nup.update()) {
+            //std::cout << "DebugString: " << _jup.path().Utf8DebugString()
+            //    << "\n";
+            int path_idx = 0;
+            path.clear();
+            while (path_idx < _nup.path().elem_size()) {
+                //std::cout << _jup.path().elem().at(path_idx).name()
+                //    << " ---> ";
+                path.append("/");
+                path.append(_nup.path().elem().at(path_idx).name());
+                path_idx++;
+            }
+
+            // only json_val() received
+            value = _nup.val().json_val();
+            //std::cout << value << "\n";
+            root[path] = value;
         }
     }
+
+    // Serialize the JSON value into a string
+    Json::StreamWriterBuilder builder_w;
+    builder_w["emitUTF8"] = true;
+    builder_w["indentation"] = "";
+    const std::unique_ptr<Json::StreamWriter> writer(
+        builder_w.newStreamWriter());
+    json_str_out = Json::writeString(builder_w, root);
 
     return true;
 }

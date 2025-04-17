@@ -76,7 +76,7 @@ public:
 private:
     mdt_dialout::gRPCMdtDialout::AsyncService cisco_service_;
     Subscriber::AsyncService juniper_service_;
-    Subscriber::AsyncService nokia_service_; //todo: review whether nokia_service needs to be of class AsyncService or mdt_dialout
+    Nokia::SROS::DialoutTelemetry::AsyncService nokia_service_;
     huawei_dialout::gRPCDataservice::AsyncService huawei_service_;
     std::unique_ptr<grpc::ServerCompletionQueue> cisco_cq_;
     std::unique_ptr<grpc::ServerCompletionQueue> juniper_cq_;
@@ -147,9 +147,9 @@ private:
         Subscriber::AsyncService *juniper_service_;
         grpc::ServerCompletionQueue *juniper_cq_;
         grpc::ServerContext juniper_server_ctx;
-        gnmi::SubscribeResponse juniper_stream;
-        grpc::ServerAsyncReaderWriter<gnmi::SubscribeRequest,
-            gnmi::SubscribeResponse> juniper_resp;
+        juniper_gnmi::SubscribeResponse juniper_stream;
+        grpc::ServerAsyncReaderWriter<juniper_gnmi::SubscribeRequest,
+            juniper_gnmi::SubscribeResponse> juniper_resp;
         int juniper_replies_sent;
         const int kJuniperMaxReplies;
         enum StreamStatus { START, FLOW, PROCESSING, END };
@@ -162,7 +162,7 @@ private:
             spdlog::get("multi-logger")->
                 debug("destructor: ~NokiaStream()"); };
         NokiaStream(
-            Subscriber::AsyncService *nokia_service,
+            Nokia::SROS::DialoutTelemetry::AsyncService *nokia_service,
             grpc::ServerCompletionQueue *nokia_cq);
         void Start(
             std::unordered_map<std::string,std::vector<std::string>>
@@ -173,16 +173,15 @@ private:
             kafka::clients::KafkaProducer &kafka_producer,
             ZmqPush &zmq_pusher,
             zmq::socket_t &zmq_sock,
-            const std::string &zmq_uri,
-            GnmiNokiaTelemetryHeaderExtension &nokia_tlm_hdr_ext
+            const std::string &zmq_uri
         );
     private:
-        Subscriber::AsyncService *nokia_service_;
+        Nokia::SROS::DialoutTelemetry::AsyncService *nokia_service_;
         grpc::ServerCompletionQueue *nokia_cq_;
         grpc::ServerContext nokia_server_ctx;
-        gnmi::SubscribeResponse nokia_stream;
-        grpc::ServerAsyncReaderWriter<gnmi::SubscribeRequest,
-            gnmi::SubscribeResponse> nokia_resp;
+        nokia_gnmi::SubscribeResponse nokia_stream;
+        grpc::ServerAsyncReaderWriter<Nokia::SROS::PublishResponse,
+            nokia_gnmi::SubscribeResponse> nokia_resp;
         int nokia_replies_sent;
         const int kNokiaMaxReplies;
         enum StreamStatus { START, FLOW, PROCESSING, END };
