@@ -23,18 +23,15 @@ extern "C" {
         char *writer_id;
         char *iface;
         char *ipv4_socket_cisco;
-        char *ipv4_socket_juniper;
         char *ipv4_socket_nokia;
         char *ipv4_socket_huawei;
         /* char *core_pid_folder; */
         /* workers */
         char *cisco_workers;
-        char *juniper_workers;
         char *nokia_workers;
         char *huawei_workers;
         /* replies */
         char *replies_cisco;
-        char *replies_juniper;
         char *replies_nokia;
         char *replies_huawei;
         /* logging */

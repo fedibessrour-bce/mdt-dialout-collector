@@ -339,31 +339,6 @@ bool MainCfgHandler::lookup_main_parameters(const std::string &cfg_path,
         params.insert({"ipv4_socket_cisco", ""});
     }
 
-    std::string ipv4_socket_juniper_s;
-    bool ipv4_socket_juniper = main_params.exists("ipv4_socket_juniper");
-    if (ipv4_socket_juniper == true) {
-        libconfig::Setting &ipv4_socket_juniper =
-            main_params.lookup("ipv4_socket_juniper");
-        try {
-            ipv4_socket_juniper_s = ipv4_socket_juniper.c_str();
-            if (ipv4_socket_juniper_s.empty() == false) {
-                params.insert({"ipv4_socket_juniper", ipv4_socket_juniper_s});
-            } else {
-                spdlog::get("multi-logger")->
-                    error("[ipv4_socket_juniper] configuration "
-                    "issue: [ {} ] is an invalid socket",
-                    ipv4_socket_juniper_s);
-                return false;
-            }
-        } catch (const libconfig::SettingTypeException &ste) {
-            spdlog::get("multi-logger")->
-                error("[ipv4_socket_juniper] configuration issue: "
-                "{}", ste.what());
-            return false;
-        }
-    } else {
-        params.insert({"ipv4_socket_juniper", ""});
-    }
 
     std::string ipv4_socket_nokia_s;
     bool ipv4_socket_nokia = main_params.exists("ipv4_socket_nokia");
@@ -441,33 +416,6 @@ bool MainCfgHandler::lookup_main_parameters(const std::string &cfg_path,
             }
         } else {
             params.insert({"replies_cisco", "0"});
-        }
-    }
-
-    if (ipv4_socket_juniper_s.empty() == false) {
-        bool replies_juniper = main_params.exists("replies_juniper");
-        if (replies_juniper == true) {
-            libconfig::Setting &replies_juniper =
-                main_params.lookup("replies_juniper");
-            try {
-                std::string replies_juniper_s = replies_juniper;
-                if (replies_juniper_s.empty() == false) {
-                    params.insert({"replies_juniper", replies_juniper_s});
-                } else {
-                    spdlog::get("multi-logger")->
-                        error("[replies_juniper] configuration "
-                        "issue: [ {} ] is an invalid # of replies",
-                        replies_juniper_s);
-                    return false;
-                }
-            } catch (const libconfig::SettingTypeException &ste) {
-                spdlog::get("multi-logger")->
-                    error("[replies_juniper] configuration issue: "
-                    "{}", ste.what());
-                return false;
-            }
-        } else {
-            params.insert({"replies_juniper", "0"});
         }
     }
 
@@ -549,33 +497,6 @@ bool MainCfgHandler::lookup_main_parameters(const std::string &cfg_path,
             }
         } else {
             params.insert({"cisco_workers", "1"});
-        }
-    }
-
-    if (ipv4_socket_juniper_s.empty() == false) {
-        bool juniper_workers = main_params.exists("juniper_workers");
-        if (juniper_workers == true) {
-            libconfig::Setting &juniper_workers =
-                main_params.lookup("juniper_workers");
-            try {
-                std::string juniper_workers_s = juniper_workers;
-                if (juniper_workers_s.empty() == false) {
-                    params.insert({"juniper_workers", juniper_workers_s});
-                } else {
-                    spdlog::get("multi-logger")->
-                        error("[juniper_workers] configuration "
-                        "issue: [ {} ] is an invalid # of replies",
-                        juniper_workers_s);
-                    return false;
-                }
-            } catch (const libconfig::SettingTypeException &ste) {
-                spdlog::get("multi-logger")->
-                    error("[juniper_workers] configuration issue: "
-                    "{}", ste.what());
-                return false;
-            }
-        } else {
-            params.insert({"juniper_workers", "1"});
         }
     }
 

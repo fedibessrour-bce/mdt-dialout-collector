@@ -12,8 +12,6 @@
 #include <json/json.h>
 // mdt-dialout-collector Library headers
 #include "proto/Cisco/cisco_telemetry.pb.h"
-#include "proto/Juniper/juniper_gnmi.pb.h"
-#include "proto/Juniper/juniper_telemetry_header_extension.pb.h"
 #include "proto/Huawei/huawei_telemetry.pb.h"
 #include "proto/Nokia/nokia_gnmi.pb.h"
 #include "proto/OpenConfig/openconfig_interfaces.pb.h"
@@ -47,12 +45,6 @@ public:
         std::string &json_str_out);
     Json::Value CiscoGpbkvField2Json(
         const cisco_telemetry::TelemetryField &field);
-    bool JuniperExtension(juniper_gnmi::SubscribeResponse &juniper_stream,
-        GnmiJuniperTelemetryHeaderExtension &juniper_tlm_header_ext,
-        Json::Value &root);
-    bool JuniperUpdate(juniper_gnmi::SubscribeResponse &juniper_stream,
-        std::string &json_str_out,
-        Json::Value &root);
     bool NokiaUpdate(nokia_gnmi::SubscribeResponse &nokia_stream,
         std::string &json_str_out,
         Json::Value &root);

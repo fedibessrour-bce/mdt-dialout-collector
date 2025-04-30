@@ -11,16 +11,6 @@ libgrpc_collector_proto_la_SOURCES = \
 			Cisco/cisco_dialout.grpc.pb.cc \
 			Cisco/cisco_dialout.pb.cc \
 			Cisco/cisco_telemetry.grpc.pb.cc \
-			Juniper/juniper_dialout.pb.cc \
-			Juniper/juniper_gnmi.pb.cc \
-			Juniper/juniper_gnmi_ext.pb.cc \
-			Juniper/juniper_gnmi_ext.grpc.pb.cc \
-			Juniper/juniper_telemetry_header_extension.pb.cc \
-			Juniper/juniper_telemetry.pb.cc \
-			Juniper/juniper_telemetry.grpc.pb.cc \
-			Juniper/juniper_telemetry_header_extension.grpc.pb.cc \
-			Juniper/juniper_gnmi.grpc.pb.cc \
-			Juniper/juniper_dialout.grpc.pb.cc \
 			Nokia/nokia_dialout.pb.cc \
 			Nokia/nokia_gnmi.pb.cc \
 			Nokia/nokia_gnmi_ext.pb.cc \
