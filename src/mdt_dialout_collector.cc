@@ -173,7 +173,13 @@ int main(int argc, char *argv[])
         LoadLabelMapPreTagStyle(label_map,
             data_manipulation_cfg_parameters.at("label_map_ptm_path"));
     }
-
+    spdlog::get("multi-logger")->debug(
+        "ipv4 sockets found in config:\n ipv4_socket_cisco: {},\n ipv4_socket_juniper: {},\n ipv4_socket_nokia: {},\n ipv4_socket_huawei: {}\n",
+        main_cfg_parameters.at("ipv4_socket_cisco"),
+        main_cfg_parameters.at("ipv4_socket_juniper"),
+        main_cfg_parameters.at("ipv4_socket_nokia"),
+        main_cfg_parameters.at("ipv4_socket_huawei")
+    );
     if (main_cfg_parameters.at("ipv4_socket_cisco").empty() == true &&
         main_cfg_parameters.at("ipv4_socket_juniper").empty() == true &&
         main_cfg_parameters.at("ipv4_socket_nokia").empty() == true &&

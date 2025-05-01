@@ -204,7 +204,7 @@ add_custom_command(
 )
 
 # Protobuf generated "gRPC dial-out" - Nokia
-message(STATUS "TROUBLESHOOTING - Generating gRPC files for Nokia")
+message(STATUS "Generating gRPC files for Nokia")
 set(nokia_gnmi_pb_cc
   "${CMAKE_CURRENT_SOURCE_DIR}/src/proto/Nokia/nokia_gnmi.pb.cc")
 set(nokia_gnmi_pb_h
@@ -221,7 +221,7 @@ set(nokia_gnmi_dialout_pb_grpc_cc
   "${CMAKE_CURRENT_SOURCE_DIR}/src/proto/Nokia/nokia_dialout.grpc.pb.cc")
 set(nokia_gnmi_dialout_pb_grpc_h
   "${CMAKE_CURRENT_SOURCE_DIR}/src/proto/Nokia/nokia_dialout.grpc.pb.h")
-message(STATUS "TROUBLESHOOTING - add_custom_command files for Nokia")
+message(STATUS "add_custom_command files for Nokia")
 add_custom_command(
     OUTPUT
     "${nokia_gnmi_pb_cc}"

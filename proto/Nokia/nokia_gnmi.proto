@@ -32,15 +32,9 @@ import  public "nokia_gnmi_ext.proto";
 // http://github.com/openconfig/reference/blob/master/rpc/gnmi
 package nokia_gnmi;
 
-// Define a protobuf FileOption that defines the gNMI service version.
-extend google.protobuf.FileOptions {
-  // The gNMI service semantic version.
-  string gnmi_service = 1001;
-}
 
 // gNMI_service is the current version of the gNMI service, returned through
 // the Capabilities RPC.
-option (gnmi_service) = "0.8.0";
 
 option go_package = "github.com/openconfig/gnmi/proto/gnmi";
 option java_multiple_files = true;
