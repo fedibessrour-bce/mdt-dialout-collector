@@ -25,7 +25,7 @@ readonly grpc_clone_dir="$HOME/grpc"
 readonly grpc_install_dir="$HOME/.local"
 
 # MDT install parameters
-readonly mdt_url="https://github.com/network-analytics/mdt-dialout-collector.git"
+readonly mdt_url="https://github.com/fedibessrour-bce/mdt-dialout-collector"
 readonly mdt_install_dir="/opt/mdt-dialout-collector"
 
 # librdkafka parameters
